@@ -1,29 +1,19 @@
-# ===============================
-# VARIABLES BASE
-# ===============================
-
 $BasePath = "\\10.10.10.3\General\Local Intune\Apps"
 $ErrorActionPreference = "Stop"
 
 Write-Host "Iniciando instalación automática..." -ForegroundColor Cyan
 
-# ===============================
-# 1. INSTALACIONES DE APLICACIONES
-# ===============================
-
+# 1. Instalaciones de aplicaciones
 Write-Host "Instalando Spark..." -ForegroundColor Yellow
-Start-Process "$BasePath\Spark\spark_2_7_7.exe" -ArgumentList "-q" -Wait
+& "$BasePath\Spark\spark_2_7_7.exe" -q
 
 Write-Host "Instalando Visual C++ Redistributable x86..." -ForegroundColor Yellow
-Start-Process "$BasePath\VC_redist\VC_redist.x86.exe" -ArgumentList "/install /quiet /norestart" -Wait
+& "$BasePath\VC_redist\VC_redist.x86.exe" /install /quiet /norestart
 
 Write-Host "Instalando MySQL Connector ODBC 8.0 (32 bits)..." -ForegroundColor Yellow
-Start-Process "msiexec.exe" -ArgumentList "/i `"$BasePath\MySQL Connector ODBC\MySQL Connector ODBC 8.0.22 (32 bits).msi`" /qn /norestart" -Wait
+& msiexec.exe /i "$BasePath\MySQL Connector ODBC\MySQL Connector ODBC 8.0.22 (32 bits).msi" /qn /norestart
 
-# ===============================
-# 2. CREAR ORIGEN DE DATOS ODBC (DSN)
-# ===============================
-
+# 2. Configuración DSN ODBC (igual que antes, no necesita Start-Process)
 Write-Host "Configurando DSN ODBC..." -ForegroundColor Yellow
 
 $dsnName = "Ventas"
@@ -54,30 +44,15 @@ if (-not (Test-Path "$base\ODBC Data Sources")) {
 }
 Set-ItemProperty -Path "$base\ODBC Data Sources" -Name $dsnName -Value "MySQL ODBC 8.0 Unicode Driver"
 
-# ===============================
-# 3. COPIAR CARPETA Sigg2002 A C:\
-# ===============================
-
+# 3. Copiar carpeta Sigg2002
 Write-Host "Copiando carpeta Sigg2002..." -ForegroundColor Yellow
-
 $SourceFolder = "$BasePath\Sigg2002"
 $TargetFolder = "C:\Sigg2002"
-
-if (-not (Test-Path $SourceFolder)) {
-    Write-Error "No se encontró la carpeta Sigg2002 en $BasePath"
-    exit 1
-}
-
-if (Test-Path $TargetFolder) {
-    Remove-Item $TargetFolder -Recurse -Force
-}
-
+if (-not (Test-Path $SourceFolder)) { Write-Error "No se encontró la carpeta Sigg2002 en $BasePath"; exit 1 }
+if (Test-Path $TargetFolder) { Remove-Item $TargetFolder -Recurse -Force }
 Copy-Item -Path $SourceFolder -Destination "C:\" -Recurse -Force
 
-# ===============================
-# 4. CREAR ACCESO DIRECTO EN EL ESCRITORIO
-# ===============================
-
+# 4. Crear acceso directo en escritorio
 Write-Host "Creando acceso directo en el escritorio..." -ForegroundColor Yellow
 
 $exePath = "C:\Sigg2002\Ventas\Ventas.exe"
@@ -88,44 +63,19 @@ $wsh = New-Object -ComObject WScript.Shell
 $shortcut = $wsh.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $exePath
 $shortcut.WorkingDirectory = "C:\Sigg2002\Ventas"
-$shortcut.IconLocation = $exePath
+$shortcut.IconLocation = "C:\Sigg2002\Ventas\ventas.ico"
 $shortcut.Save()
 
-# ===============================
-# 5. INSTALACIÓN DE OCX
-# ===============================
-
+# 5. Instalación de OCX
 Write-Host "Instalando bbListView OCX (32 bits)..." -ForegroundColor Yellow
-
 $ocxSourcePath = "$BasePath\bbListView\bbListView"
 $syswow64 = "$env:windir\SysWOW64"
-
-$files = @(
-    "bbListView.ocx",
-    "bbListView.tlb",
-    "bbListView.hlp"
-)
-
+$files = @("bbListView.ocx","bbListView.tlb","bbListView.hlp")
 foreach ($file in $files) {
     $src = Join-Path $ocxSourcePath $file
-    if (Test-Path $src) {
-        Copy-Item $src $syswow64 -Force
-    } else {
-        Write-Error "Archivo faltante: $file"
-        exit 1
-    }
+    if (Test-Path $src) { Copy-Item $src $syswow64 -Force } else { Write-Error "Archivo faltante: $file"; exit 1 }
 }
-
-# Registrar OCX usando el regsvr32 de 32 bits
-Start-Process "$syswow64\regsvr32.exe" `
-    -ArgumentList "/s `"$syswow64\bbListView.ocx`"" `
-    -Wait
-
-Write-Host "bbListView OCX instalado correctamente." -ForegroundColor Green
-
-# ===============================
-# FINAL
-# ===============================
+& "$syswow64\regsvr32.exe" /s "$syswow64\bbListView.ocx"
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
