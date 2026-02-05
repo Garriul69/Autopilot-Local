@@ -28,6 +28,24 @@ Write-Host "Copiando e instalando MySQL Connector ODBC 8.0 (32 bits)..." -Foregr
 Copy-Item "$BasePath\MySQL Connector ODBC\MySQL Connector ODBC 8.0.22 (32 bits).msi" $TempPath -Force
 Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\MySQL Connector ODBC 8.0.22 (32 bits).msi`" /qn /norestart" -Wait
 
+Write-Host "Copiando e instalando Google Chrome..." -ForegroundColor Yellow
+Copy-Item "$BasePath\Google Chrome\googlechromestandaloneenterprise64.msi" $TempPath -Force
+Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\googlechromestandaloneenterprise64.msi`" /qn /norestart" -Wait
+
+Write-Host "Copiando e instalando Synology Drive Client..." -ForegroundColor Yellow
+Copy-Item "$BasePath\Synology Drive Client\Synology Drive Client-3.5.1-16102-x64.msi" $TempPath -Force
+Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\Synology Drive Client-3.5.1-16102-x64.msi`" /qn /norestart" -Wait
+
+Write-Host "Copiando e Instalando TeamViewer..." -ForegroundColor Yellow
+Copy-Item "$BasePath\TeamViewer\TeamViewer_Setup_x64.exe" $TempPath -Force
+Start-Process "$TempPath\TeamViewer_Setup_x64.exe" -ArgumentList "/S" -Wait
+
+Write-Host "Copiando e Instalando Office..." -ForegroundColor Yellow
+Copy-Item -Path "$BasePath\Office" -Destination $TempPath -Recurse -Force
+Start-Process "$TempPath\Office\setup.exe" -ArgumentList "/configure configuration.xml" -Wait
+
+Copy-Item -Path $SourceFolder -Destination "C:\" -Recurse -Force
+
 # ===============================
 # 2. CREAR ORIGEN DE DATOS ODBC (DSN)
 # ===============================
@@ -96,7 +114,7 @@ $wsh = New-Object -ComObject WScript.Shell
 $shortcut = $wsh.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $exePath
 $shortcut.WorkingDirectory = "C:\Sigg2002\Ventas"
-$shortcut.IconLocation = $exePath
+$shortcut.IconLocation = "C:\Sigg2002\Ventas\ventas.ico"
 $shortcut.Save()
 
 # ===============================
@@ -132,3 +150,4 @@ Remove-Item $TempPath -Recurse -Force
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
+
