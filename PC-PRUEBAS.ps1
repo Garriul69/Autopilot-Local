@@ -40,12 +40,6 @@ Write-Host "Copiando e Instalando TeamViewer..." -ForegroundColor Yellow
 Copy-Item "$BasePath\TeamViewer\TeamViewer_Setup_x64.exe" $TempPath -Force
 Start-Process "$TempPath\TeamViewer_Setup_x64.exe" -ArgumentList "/S" -Wait
 
-Write-Host "Copiando e Instalando Office..." -ForegroundColor Yellow
-Copy-Item -Path "$BasePath\Office" -Destination $TempPath -Recurse -Force
-Start-Process "$TempPath\Office\setup.exe" -ArgumentList "/configure configuration.xml" -Wait
-
-Copy-Item -Path $SourceFolder -Destination "C:\" -Recurse -Force
-
 # ===============================
 # 2. CREAR ORIGEN DE DATOS ODBC (DSN)
 # ===============================
@@ -145,9 +139,14 @@ Write-Host "bbListView OCX instalado correctamente." -ForegroundColor Green
 # LIMPIEZA FINAL
 # ===============================
 
+Write-Host "Copiando e Instalando Office..." -ForegroundColor Yellow
+Copy-Item "$BasePath\Office\OfficeSetup2024.exe" $TempPath -Force
+Start-Process "$TempPath\OfficeSetup2024.exe" -Wait
+
 Write-Host "Eliminando carpeta temporal..." -ForegroundColor Yellow
 Remove-Item $TempPath -Recurse -Force
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
+
 
