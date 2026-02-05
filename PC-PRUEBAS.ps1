@@ -143,10 +143,15 @@ Write-Host "Copiando e Instalando Office..." -ForegroundColor Yellow
 Copy-Item "$BasePath\Office\OfficeSetup2024.exe" $TempPath -Force
 Start-Process "$TempPath\OfficeSetup2024.exe" -Wait
 
+Write-Host "Copiando e Instalando Adobe Acrobat Reader..." -ForegroundColor Yellow
+Copy-Item "$BasePath\Adobe Acrobat Reader\Reader_es_install.exe" $TempPath -Force
+Start-Process "$TempPath\Reader_es_install.exe" -Wait
+
 Write-Host "Eliminando carpeta temporal..." -ForegroundColor Yellow
 Remove-Item $TempPath -Recurse -Force
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
+
 
 
