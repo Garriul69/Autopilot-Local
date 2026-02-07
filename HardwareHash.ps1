@@ -8,13 +8,6 @@ $SharePath = "\\10.10.10.3\Local Intune\Hashes"
 $OutputFile = Join-Path $SharePath "$PCName.csv"
 
 try {
-    # Descargar el script oficial de Autopilot desde GitHub (raw URL)
-    $AutopilotScript = "$env:TEMP\Get-WindowsAutopilotInfo.ps1"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Garriul69/Autopilot-Local/refs/heads/main/Get-WindowsAutopilotInfo.ps1" -OutFile $AutopilotScript
-
-    # Ejecutar el script descargado (dot-sourcing)
-    . $AutopilotScript
-
     # Generar el hardware hash y guardarlo en la carpeta compartida
     Get-WindowsAutopilotInfo -OutputFile $OutputFile
 
