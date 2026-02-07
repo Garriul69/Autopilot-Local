@@ -1,22 +1,52 @@
 # Forzar TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Saltarse políticas solo en esta ejecución
+# Bypass solo para esta ejecución
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Nombre del equipo
 $ComputerName = $env:COMPUTERNAME
+$SharePath   = "\\10.10.10.3\Local Intune\Hashes"
 
-# Ruta de red destino
-$NetworkPath = "\\10.10.10.3\Local Intune\Hashes"
-$OutputFile = Join-Path $NetworkPath "$ComputerName.csv"
+$CsvFile = Join-Path $SharePath "$ComputerName.csv"
+$LogFile = Join-Path $SharePath "$ComputerName.log"
 
-# URL oficial del script de Microsoft (SIN PSGallery)
-$AutopilotScriptUrl = "https://raw.githubusercontent.com/microsoft/Intune-PowerShell-Scripts/master/WindowsAutopilot/Get-WindowsAutopilotInfo.ps1"
+Start-Transcript -Path $LogFile -Force
 
-# Descargar script
-$LocalScript = "$env:TEMP\Get-WindowsAutopilotInfo.ps1"
-Invoke-WebRequest -Uri $AutopilotScriptUrl -OutFile $LocalScript -UseBasicParsing
+try {
+    # Asegurar servicio MDM
+    sc.exe config dmwappushservice start= auto | Out-Null
+    Start-Service dmwappushservice -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 5
 
-# Ejecutar script descargado
-& powershell.exe -ExecutionPolicy Bypass -File $LocalScript -OutputFile $OutputFile
+    $mdm = Get-CimInstance `
+        -Namespace root\cimv2\mdm\dmmap `
+        -ClassName MDM_DevDetail_Ext01 `
+        -ErrorAction SilentlyContinue
+
+    if (-not $mdm) {
+        "MDM no inicializado. Requiere reinicio." | Out-File -Append $LogFile
+        Stop-Transcript
+        exit 3010
+    }
+
+    # Descargar script oficial Autopilot
+    $AutopilotUrl = "https://raw.githubusercontent.com/microsoft/Intune-PowerShell-Scripts/master/WindowsAutopilot/Get-WindowsAutopilotInfo.ps1"
+    $LocalScript  = "$env:TEMP\Get-WindowsAutopilotInfo.ps1"
+
+    Invoke-WebRequest -Uri $AutopilotUrl -OutFile $LocalScript -UseBasicParsing
+
+    # Ejecutar en PowerShell 64 bits
+    & "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
+        -ExecutionPolicy Bypass `
+        -File $LocalScript `
+        -OutputFile $CsvFile
+
+    if (-not (Test-Path $CsvFile)) {
+        throw "El CSV no fue generado"
+    }
+}
+catch {
+    $_ | Out-File -Append $LogFile
+}
+
+Stop-Transcript
