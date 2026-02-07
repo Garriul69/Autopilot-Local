@@ -1,27 +1,22 @@
+# Forzar TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Saltarse políticas solo en esta ejecución
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Forzar NuGet
-if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:$false
-}
-
-# Confiar PSGallery
-Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-
-# Asegurar PowerShellGet
-if (-not (Get-Module -ListAvailable PowerShellGet)) {
-    Install-Module PowerShellGet -Force -Confirm:$false
-}
-
-$env:Path += ";C:\Program Files\WindowsPowerShell\Scripts"
-
-# Instalar script Autopilot
-Install-Script -Name Get-WindowsAutopilotInfo -Force -Confirm:$false
-
+# Nombre del equipo
 $ComputerName = $env:COMPUTERNAME
+
+# Ruta de red destino
 $NetworkPath = "\\10.10.10.3\Local Intune\Hashes"
 $OutputFile = Join-Path $NetworkPath "$ComputerName.csv"
 
-Get-WindowsAutopilotInfo -OutputFile $OutputFile
+# URL oficial del script de Microsoft (SIN PSGallery)
+$AutopilotScriptUrl = "https://raw.githubusercontent.com/microsoft/Intune-PowerShell-Scripts/master/WindowsAutopilot/Get-WindowsAutopilotInfo.ps1"
+
+# Descargar script
+$LocalScript = "$env:TEMP\Get-WindowsAutopilotInfo.ps1"
+Invoke-WebRequest -Uri $AutopilotScriptUrl -OutFile $LocalScript -UseBasicParsing
+
+# Ejecutar script descargado
+& powershell.exe -ExecutionPolicy Bypass -File $LocalScript -OutputFile $OutputFile
