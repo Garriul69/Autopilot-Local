@@ -1,38 +1,35 @@
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# ===============================
+# Hardware Hash - Autopilot
+# ===============================
 
+# Forzar TLS 1.2
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Variables
 $ComputerName = $env:COMPUTERNAME
 $SharePath   = "\\10.10.10.3\Local Intune\Hashes"
 
 $CsvFile = Join-Path $SharePath "$ComputerName.csv"
 $LogFile = Join-Path $SharePath "$ComputerName.log"
 
+# Iniciar log
 Start-Transcript -Path $LogFile -Force
 
 try {
-    sc.exe config dmwappushservice start= auto | Out-Null
-    Start-Service dmwappushservice -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 5
+    # URL CORRECTA del script Autopilot (TU GitHub)
+    $AutopilotUrl = "https://raw.githubusercontent.com/Garriul69/Autopilot-Local/refs/heads/main/Get-WindowsAutopilotInfo.ps1"
 
-    $mdm = Get-CimInstance `
-        -Namespace root\cimv2\mdm\dmmap `
-        -ClassName MDM_DevDetail_Ext01 `
-        -ErrorAction SilentlyContinue
+    # Descargar script
+    $AutopilotScript = Invoke-WebRequest -Uri $AutopilotUrl -UseBasicParsing -ErrorAction Stop
 
-    if (-not $mdm) {
-        exit 3010
-    }
+    # Cargar funciones en memoria
+    Invoke-Expression $AutopilotScript.Content
 
-    # URL OFICIAL CORRECTA
-    $AutopilotUrl = "https://raw.githubusercontent.com/microsoftgraph/powershell-intune-samples/master/WindowsAutopilot/Get-WindowsAutopilotInfo.ps1"
-    $LocalScript  = "$env:TEMP\Get-WindowsAutopilotInfo.ps1"
-
-    Invoke-WebRequest -Uri $AutopilotUrl -OutFile $LocalScript -UseBasicParsing
-
-    & "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
-        -ExecutionPolicy Bypass `
-        -File $LocalScript `
-        -OutputFile $CsvFile
+    # Ejecutar obtención del Hardware Hash
+    Get-WindowsAutopilotInfo -OutputFile $CsvFile -ErrorAction Stop
+}
+catch {
+    Write-Error $_
 }
 finally {
     Stop-Transcript
