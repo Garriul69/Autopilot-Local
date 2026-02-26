@@ -17,8 +17,8 @@ New-Item -ItemType Directory -Path $TempPath | Out-Null
 # ===============================
 
 Write-Host "Copiando e instalando Spark..." -ForegroundColor Yellow
-Copy-Item "$BasePath\Spark\spark_2_7_7.exe" $TempPath -Force
-Start-Process "$TempPath\spark_2_7_7.exe" -ArgumentList "-q" -Wait
+Copy-Item "$BasePath\Spark\spark_3_0_2-with-jre.msi" $TempPath -Force
+Start-Process "$TempPath\spark_3_0_2-with-jre.msi" -ArgumentList "-q" -Wait
 
 Write-Host "Copiando e instalando Visual C++ Redistributable x86..." -ForegroundColor Yellow
 Copy-Item "$BasePath\VC_redist\VC_redist.x86.exe" $TempPath -Force
@@ -48,9 +48,9 @@ Write-Host "Configurando DSN ODBC..." -ForegroundColor Yellow
 
 $dsnName = "Ventas"
 $description = "Sistema Empresarial Grupo Guadalupe"
-$server = "192.168.1.1"
+$server = "10.10.10.1"
 $port = "3306"
-$user = "AFOFOFOOOO"
+$user = "root"
 $pwd = "NOPITINOOO"
 $database = "ventas"
 
@@ -139,19 +139,12 @@ Write-Host "bbListView OCX instalado correctamente." -ForegroundColor Green
 # LIMPIEZA FINAL
 # ===============================
 
-Write-Host "Copiando e Instalando Office..." -ForegroundColor Yellow
-Copy-Item "$BasePath\Office\OfficeSetup2024.exe" $TempPath -Force
-Start-Process "$TempPath\OfficeSetup2024.exe" -Wait
-
-Write-Host "Copiando e Instalando Adobe Acrobat Reader..." -ForegroundColor Yellow
-Copy-Item "$BasePath\Adobe Acrobat Reader\Reader_es_install.exe" $TempPath -Force
-Start-Process "$TempPath\Reader_es_install.exe" -Wait
-
 Write-Host "Eliminando carpeta temporal..." -ForegroundColor Yellow
 Remove-Item $TempPath -Recurse -Force
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
+
 
 
 
