@@ -28,6 +28,10 @@ Write-Host "Copiando e instalando MySQL Connector ODBC 8.0 (32 bits)..." -Foregr
 Copy-Item "$BasePath\MySQL Connector ODBC\MySQL Connector ODBC 8.0.22 (32 bits).msi" $TempPath -Force
 Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\MySQL Connector ODBC 8.0.22 (32 bits).msi`" /qn /norestart" -Wait
 
+Write-Host "Copiando e instalando Cisco VPN Client..." -ForegroundColor Yellow
+Copy-Item "$BasePath\Cisco VPN\cisco-secure-client-win-5.1.7.80-core-vpn-predeploy-k9.msi" $TempPath -Force
+Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\cisco-secure-client-win-5.1.7.80-core-vpn-predeploy-k9.msi`" /qn /norestart" -Wait
+
 Write-Host "Copiando e instalando Google Chrome..." -ForegroundColor Yellow
 Copy-Item "$BasePath\Google Chrome\googlechromestandaloneenterprise64.msi" $TempPath -Force
 Start-Process "msiexec.exe" -ArgumentList "/i `"$TempPath\googlechromestandaloneenterprise64.msi`" /qn /norestart" -Wait
@@ -144,6 +148,7 @@ Remove-Item $TempPath -Recurse -Force
 
 Write-Host "Instalación completa finalizada correctamente." -ForegroundColor Green
 exit 0
+
 
 
 
